@@ -1,0 +1,1211 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#fb7185">
+  <title>えいご タップ シュート</title>
+  <style>
+    :root{
+      --ink:#172033;
+      --muted:#68748a;
+      --paper:#fff7f3;
+      --line:#f6c7d0;
+      --blue:#e11d48;
+      --cyan:#0f766e;
+      --green:#14b8a6;
+      --yellow:#facc15;
+      --orange:#fb7185;
+      --red:#dc2626;
+      --violet:#8b5cf6;
+      --shadow:0 18px 48px rgba(77,29,44,.2);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden}
+    body{
+      color:var(--ink);
+      background:#fed7aa;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      user-select:none;
+      touch-action:none;
+    }
+    button,textarea{font:inherit}
+    button{
+      border:0;
+      border-radius:8px;
+      min-height:42px;
+      padding:10px 14px;
+      color:white;
+      background:var(--blue);
+      font-weight:1000;
+      cursor:pointer;
+      box-shadow:0 8px 0 #be123c,0 12px 22px rgba(225,29,72,.22);
+      touch-action:manipulation;
+    }
+    button:active{transform:translateY(3px);box-shadow:0 5px 0 #be123c,0 8px 18px rgba(225,29,72,.2)}
+    button.secondary{color:#172033;background:#fff;border:2px solid #fecdd3;box-shadow:0 6px 0 #fda4af}
+    button.good{background:var(--green);box-shadow:0 8px 0 #0f766e}
+    button.warn{background:var(--orange);box-shadow:0 8px 0 #be123c}
+    button.hot{background:var(--violet);box-shadow:0 8px 0 #6d28d9}
+    button.selected{outline:4px solid rgba(20,184,166,.72)}
+    button:disabled{opacity:.56;cursor:not-allowed;transform:none}
+    textarea{
+      width:100%;
+      min-height:220px;
+      resize:vertical;
+      border-radius:8px;
+      border:2px solid var(--line);
+      padding:12px;
+      color:var(--ink);
+      background:white;
+      line-height:1.55;
+      user-select:text;
+      touch-action:auto;
+    }
+    #scene{
+      position:fixed;
+      inset:0;
+      width:100vw;
+      height:100vh;
+      z-index:0;
+    }
+    #app{
+      position:relative;
+      z-index:1;
+      height:100vh;
+      height:100dvh;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr) auto;
+      gap:10px;
+      padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));
+      min-height:0;
+      overflow:hidden;
+    }
+    .topbar{
+      max-width:1120px;
+      width:100%;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .brand,.soundBox,.stat{
+      border-radius:8px;
+      background:rgba(255,255,255,.86);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:9px;
+      padding:8px 10px;
+      font-weight:1000;
+      line-height:1;
+    }
+    .scopeIcon{
+      width:36px;
+      height:36px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:white;
+      background:radial-gradient(circle at 36% 32%,#fff 0 8%,#fef08a 9% 17%,#e11d48 18% 68%,#0f766e 69% 100%);
+      box-shadow:inset 0 0 0 4px rgba(255,255,255,.5);
+      font-size:0;
+      position:relative;
+    }
+    .scopeIcon::before,.scopeIcon::after{content:"";position:absolute;background:white;border-radius:999px}
+    .scopeIcon::before{width:26px;height:4px}
+    .scopeIcon::after{width:4px;height:26px}
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(72px,1fr));
+      gap:8px;
+    }
+    .stat{
+      min-height:48px;
+      padding:7px 8px;
+      text-align:center;
+    }
+    .stat small{display:block;color:var(--muted);font-size:12px;font-weight:850}
+    .stat b{display:block;font-size:20px;line-height:1.1}
+    .soundBox{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:8px;
+    }
+    .game{
+      max-width:1120px;
+      width:100%;
+      min-height:0;
+      min-width:0;
+      margin:0 auto;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr);
+      gap:10px;
+      overflow:hidden;
+    }
+    .prompt{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      align-items:stretch;
+      border-radius:8px;
+      padding:12px;
+      background:rgba(255,247,243,.9);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+    }
+    .eyebrow{
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:8px;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:950;
+    }
+    .chip{
+      border:2px solid #fecdd3;
+      border-radius:999px;
+      padding:4px 9px;
+      color:#9f1239;
+      background:#fff1f2;
+      font-weight:1000;
+    }
+    .chip.hot{border-color:#99f6e4;color:#115e59;background:#ecfdf5}
+    .meaning{
+      margin:7px 0 0;
+      font-size:clamp(25px,4.6vw,48px);
+      line-height:1.12;
+      font-weight:1000;
+      letter-spacing:0;
+    }
+    .tip{
+      margin:6px 0 0;
+      color:#4b5568;
+      font-size:15px;
+      font-weight:850;
+      line-height:1.45;
+    }
+    .promptActions{
+      display:flex;
+      justify-content:flex-end;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .playfield{
+      position:relative;
+      min-height:0;
+      display:grid;
+      grid-template-rows:auto 1fr;
+      gap:8px;
+      border-radius:8px;
+      padding:12px;
+      overflow:hidden;
+      background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,.36));
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(8px);
+    }
+    .rangeHead{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      color:#3f2d3a;
+      font-weight:1000;
+      flex-wrap:wrap;
+    }
+    .modeHint{font-size:14px;color:var(--muted);font-weight:900}
+    .range{
+      position:relative;
+      min-height:0;
+      height:100%;
+      border-radius:8px;
+      border:2px solid rgba(148,163,184,.45);
+      overflow:hidden;
+      background:
+        linear-gradient(180deg,rgba(255,255,255,.76),rgba(255,255,255,.58)),
+        repeating-linear-gradient(0deg,transparent 0 39px,rgba(225,29,72,.07) 39px 41px),
+        repeating-linear-gradient(90deg,transparent 0 39px,rgba(15,118,110,.06) 39px 41px);
+    }
+    .targets{
+      position:absolute;
+      inset:0;
+      padding:14px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-content:flex-start;
+      justify-content:center;
+    }
+    .targets.moving{display:block}
+    .target{
+      position:relative;
+      min-width:116px;
+      min-height:64px;
+      border-radius:14px;
+      padding:11px 18px;
+      display:grid;
+      place-items:center;
+      color:#0f172a;
+      font-size:clamp(21px,3vw,34px);
+      line-height:1;
+      font-weight:1000;
+      border:2px solid rgba(15,23,42,.14);
+      background:linear-gradient(180deg,#fff,#ffe4e6);
+      box-shadow:0 12px 0 rgba(15,23,42,.14),0 18px 22px rgba(15,23,42,.14);
+      cursor:crosshair;
+      touch-action:manipulation;
+      transition:transform .12s,filter .12s,opacity .12s,outline .12s;
+      will-change:transform;
+    }
+    .target::before{
+      content:"";
+      position:absolute;
+      inset:7px;
+      border-radius:10px;
+      border:2px dashed rgba(15,23,42,.12);
+      pointer-events:none;
+    }
+    .target.color0{background:linear-gradient(180deg,#fff1f2,#fda4af)}
+    .target.color1{background:linear-gradient(180deg,#ecfeff,#5eead4)}
+    .target.color2{background:linear-gradient(180deg,#f7fee7,#bef264)}
+    .target.color3{background:linear-gradient(180deg,#fefce8,#fde047)}
+    .target.color4{background:linear-gradient(180deg,#f5f3ff,#c4b5fd)}
+    .target.easyCorrect{outline:5px solid rgba(20,184,166,.62)}
+    .target.hintGlow{outline:6px solid rgba(253,224,71,.9);filter:saturate(1.16)}
+    .target.badFlash{animation:badFlash .34s linear}
+    .target.shot{animation:shot .54s cubic-bezier(.15,.9,.2,1) forwards}
+    .targets.moving .target{position:absolute;left:0;top:0}
+    @keyframes badFlash{
+      0%,100%{filter:none}
+      35%{filter:saturate(1.4);background:#fecaca}
+    }
+    @keyframes shot{
+      0%{opacity:1;transform:scale(1)}
+      45%{opacity:1;transform:scale(1.16) rotate(-3deg)}
+      100%{opacity:0;transform:scale(.2) translateY(-80px) rotate(8deg)}
+    }
+    .burst{
+      position:absolute;
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      border:5px solid #14b8a6;
+      pointer-events:none;
+      opacity:0;
+      transform:translate(-50%,-50%) scale(.2);
+      animation:burst .48s ease-out forwards;
+      z-index:10;
+    }
+    @keyframes burst{
+      0%{opacity:.98;transform:translate(-50%,-50%) scale(.2)}
+      100%{opacity:0;transform:translate(-50%,-50%) scale(6)}
+    }
+    .message{
+      position:absolute;
+      left:50%;
+      top:50%;
+      z-index:20;
+      min-width:min(560px,86vw);
+      padding:14px 18px;
+      border-radius:8px;
+      text-align:center;
+      color:white;
+      background:rgba(15,23,42,.9);
+      box-shadow:var(--shadow);
+      font-size:clamp(24px,4.5vw,50px);
+      line-height:1.08;
+      font-weight:1000;
+      opacity:0;
+      pointer-events:none;
+      transform:translate(-50%,-50%) scale(.95);
+      transition:opacity .16s,transform .16s;
+    }
+    .message.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    .message.good{background:rgba(22,101,52,.91)}
+    .message.bad{background:rgba(185,28,28,.91)}
+    .finish{
+      position:absolute;
+      inset:12px;
+      z-index:30;
+      display:none;
+      place-items:center;
+      border-radius:8px;
+      padding:20px;
+      text-align:center;
+      background:rgba(255,247,243,.94);
+      box-shadow:var(--shadow);
+    }
+    .finish.show{display:grid}
+    .finish h2{margin:0 0 12px;font-size:clamp(36px,7vw,74px);line-height:1}
+    .finish p{margin:8px 0;color:#4b5568;font-size:18px;line-height:1.6;font-weight:800}
+    .bigScore{font-size:clamp(44px,8vw,90px);line-height:1;color:var(--blue);font-weight:1000}
+    .controls{
+      max-width:1120px;
+      width:100%;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:1fr auto;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+      border-radius:8px;
+      padding:10px 12px;
+      background:rgba(255,247,243,.9);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+    }
+    .modeButtons,.toolButtons{display:flex;gap:8px;flex-wrap:wrap}
+    .help{
+      color:#4b5568;
+      font-size:14px;
+      font-weight:850;
+      line-height:1.45;
+      text-align:right;
+    }
+    .modal{
+      position:fixed;
+      inset:0;
+      z-index:50;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:rgba(15,23,42,.58);
+      backdrop-filter:blur(8px);
+    }
+    .modal.show{display:flex}
+    .card{
+      width:min(980px,96vw);
+      max-height:92dvh;
+      overflow:auto;
+      border-radius:8px;
+      padding:20px;
+      color:var(--ink);
+      background:rgba(255,247,243,.96);
+      box-shadow:var(--shadow);
+    }
+    .card h2{margin:0 0 10px;font-size:clamp(28px,5vw,52px);line-height:1}
+    .small{color:var(--muted);font-size:14px;line-height:1.65;font-weight:800}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}
+    .pill,.statPill{
+      border:2px solid #fecdd3;
+      border-radius:8px;
+      padding:10px 12px;
+      background:white;
+      font-weight:950;
+    }
+    .pill{display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .pill span:last-child{color:#be123c}
+    .statPill b{display:block}
+    .statPill span{color:var(--muted);font-size:13px;font-weight:850}
+    .twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:840px){
+      #app{padding:8px;gap:8px}
+      .topbar{
+        grid-template-columns:minmax(0,1fr) auto;
+        grid-template-areas:"brand sound" "stats stats";
+        gap:6px;
+      }
+      .brand{grid-area:brand;justify-content:flex-start;min-width:0}
+      .soundBox{grid-area:sound;justify-content:flex-end;padding:6px}
+      .stats{grid-area:stats;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+      .stat{min-height:38px;padding:4px 3px}
+      .stat small{font-size:11px}
+      .stat b{font-size:16px}
+      .game{grid-template-rows:auto minmax(0,1fr);gap:8px}
+      .prompt{grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:8px}
+      .promptActions{justify-content:flex-end}
+      .promptActions button{flex:0 0 auto}
+      .meaning{font-size:clamp(22px,5.4vw,36px);margin-top:4px}
+      .tip{font-size:13px;margin-top:3px}
+      .playfield{padding:8px;gap:6px}
+      .range{min-height:0}
+      .targets{padding:10px;gap:10px}
+      .target{min-width:100px;min-height:56px;padding:8px 12px;font-size:clamp(19px,5vw,28px)}
+      .controls{grid-template-columns:1fr;padding:8px;gap:8px}
+      .modeButtons,.toolButtons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+      .modeButtons button,.toolButtons button{min-width:0;padding:8px 6px;line-height:1.1}
+      .help{display:none}
+      .twoCol{grid-template-columns:1fr}
+    }
+    @media (max-height:680px) and (max-width:840px){
+      button{min-height:36px;padding:6px 8px}
+      .scopeIcon{width:30px;height:30px}
+      .scopeIcon::before{width:22px;height:3px}
+      .scopeIcon::after{width:3px;height:22px}
+      .brand{padding:5px 8px;font-size:14px}
+      .brand br{display:none}
+      .soundBox button{font-size:13px}
+      .stat{min-height:32px}
+      .stat small{font-size:10px}
+      .stat b{font-size:15px}
+      .prompt{padding:7px 8px}
+      .chip{padding:3px 7px;font-size:12px}
+      .tip{font-size:12px}
+      .rangeHead{font-size:13px;line-height:1.2}
+      .modeHint{font-size:12px}
+      .controls{padding:6px 8px;gap:6px}
+      .modeButtons,.toolButtons{gap:5px}
+      .modeButtons button,.toolButtons button{min-height:34px;padding:5px 4px;font-size:12px}
+      .target{min-width:92px;min-height:52px;padding:7px 10px}
+    }
+    @media (max-height:680px) and (min-width:841px){
+      .range{min-height:220px}
+      .meaning{font-size:34px}
+      .target{min-height:56px}
+    }
+  </style>
+</head>
+<body>
+<canvas id="scene" aria-hidden="true"></canvas>
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><span class="scopeIcon"></span><span>えいご<br>タップ シュート</span></div>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><small>もんだい</small><b><span id="levelNow">1</span>/<span id="levelMax">14</span></b></div>
+      <div class="stat"><small>てん</small><b id="score">0</b></div>
+      <div class="stat"><small>れんぞく</small><b id="streak">0</b></div>
+      <div class="stat"><small>できた</small><b id="cleared">0</b></div>
+      <div class="stat"><small>さいこう</small><b id="best">0</b></div>
+    </div>
+    <div class="soundBox">
+      <button id="soundBtn" class="secondary" type="button">音あり</button>
+      <button id="listenBtn" class="good" type="button">きく</button>
+    </div>
+  </header>
+
+  <main class="game">
+    <section class="prompt" aria-label="おだい">
+      <div>
+        <div class="eyebrow">
+          <span class="chip" id="modeChip">ヒントあり</span>
+          <span class="chip hot" id="wordHint">family words</span>
+        </div>
+        <h1 class="meaning" id="meaning">おばあさん</h1>
+        <p class="tip" id="tip">意味に合う英語をタップして、ことばをシュートしよう。</p>
+      </div>
+      <div class="promptActions">
+        <button id="hintBtn" class="warn" type="button">おたすけ</button>
+        <button id="shuffleBtn" class="secondary" type="button">まぜる</button>
+      </div>
+    </section>
+
+    <section class="playfield" aria-label="ゲーム">
+      <div class="rangeHead">
+        <span>正しい英語を 直接タップ</span>
+        <span class="modeHint" id="modeHint">正しいカードが少し光ります</span>
+      </div>
+      <div class="range" id="range">
+        <div class="targets" id="targets"></div>
+        <div class="message" id="message"></div>
+        <div class="finish" id="finish">
+          <div>
+            <h2>ぜんぶ できた！</h2>
+            <div class="bigScore" id="finalScore">0</div>
+            <p id="finalText">ことばを たくさん シュートしました。</p>
+            <p id="finalTip">もう一回やると、英語と意味がもっと近くなります。</p>
+            <button id="againBtn" class="good" type="button">もう一回</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="controls">
+    <div class="modeButtons" aria-label="モード">
+      <button id="easyBtn" class="secondary selected" type="button">ヒントあり</button>
+      <button id="tempoBtn" class="secondary" type="button">ヒントなし</button>
+      <button id="superBtn" class="hot" type="button">うごくカード</button>
+    </div>
+    <div class="toolButtons">
+      <button id="wordsBtn" class="secondary" type="button">ことば</button>
+      <button id="progressBtn" class="secondary" type="button">きろく</button>
+      <button id="restartBtn" class="secondary" type="button">はじめから</button>
+    </div>
+    <div class="help" id="helpText">タップだけで遊べます。正解すると英語を読み上げて、すぐ次へ進みます。</div>
+  </footer>
+</div>
+
+<section id="wordsModal" class="modal" aria-label="ことば">
+  <div class="card">
+    <h2>きょうの ことば</h2>
+    <p class="small">1行に「英語,日本語」の形で入れます。もとの単語は、小学生にも読みやすい訳にそろえています。</p>
+    <div id="wordGrid" class="grid"></div>
+    <textarea id="wordInput"></textarea>
+    <div class="toolButtons">
+      <button id="applyWordsBtn" type="button">これで はじめる</button>
+      <button id="resetWordsBtn" class="secondary" type="button">もとの 14こ</button>
+      <button id="closeWordsBtn" class="secondary" type="button">とじる</button>
+    </div>
+  </div>
+</section>
+
+<section id="progressModal" class="modal" aria-label="きろく">
+  <div class="card">
+    <h2>きろくと もう一回</h2>
+    <p class="small">まちがえたことばは、あとで出やすくなります。きろくはこのパソコンの中だけに残ります。</p>
+    <div class="twoCol">
+      <div>
+        <h3>よく見ることば</h3>
+        <div id="progressGrid" class="grid"></div>
+      </div>
+      <div>
+        <h3>さいこう</h3>
+        <div id="summaryGrid" class="grid"></div>
+      </div>
+    </div>
+    <div class="toolButtons">
+      <button id="reviewWeakBtn" type="button">にがてだけ</button>
+      <button id="resetProgressBtn" class="secondary" type="button">きろくをけす</button>
+      <button id="closeProgressBtn" class="secondary" type="button">とじる</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  "use strict";
+
+  const DEFAULT_WORDS = [
+    ["wife","おくさん","partner-female"],
+    ["uncle","おじさん","uncle"],
+    ["sister","しまい","sister"],
+    ["niece","めい","niece"],
+    ["mother","おかあさん","mother"],
+    ["husband","だんなさん","partner-male"],
+    ["grandson","まごの おとこのこ","grandson"],
+    ["grandmother","おばあさん","grandmother"],
+    ["grandfather","おじいさん","grandfather"],
+    ["friend","ともだち","friend"],
+    ["daughter","むすめ","daughter"],
+    ["cousin","いとこ","cousin"],
+    ["brother","きょうだい","brother"],
+    ["aunt","おばさん","aunt"]
+  ].map(([en,ja,theme])=>({en,ja,theme}));
+
+  const RELATED = {
+    wife:["wife","husband","mother","daughter","aunt"],
+    husband:["husband","wife","father","uncle","brother"],
+    uncle:["uncle","aunt","cousin","brother","grandfather","mother"],
+    aunt:["aunt","uncle","cousin","sister","grandmother","mother"],
+    sister:["sister","brother","cousin","friend","daughter","niece"],
+    brother:["brother","sister","cousin","friend","grandson","uncle"],
+    niece:["niece","daughter","sister","aunt","cousin","friend"],
+    daughter:["daughter","mother","niece","sister","grandson","wife"],
+    mother:["mother","daughter","grandmother","aunt","sister","wife"],
+    grandson:["grandson","grandmother","grandfather","daughter","brother"],
+    grandmother:["grandmother","grandfather","mother","aunt","grandson"],
+    grandfather:["grandfather","grandmother","uncle","mother","grandson"],
+    friend:["friend","brother","sister","cousin","niece"],
+    cousin:["cousin","friend","brother","sister","uncle","aunt"]
+  };
+
+  const THEME_LABELS = {
+    "partner-female":"wife = おくさん",
+    "partner-male":"husband = だんなさん",
+    uncle:"uncle = おじさん",
+    aunt:"aunt = おばさん",
+    sister:"sister = しまい",
+    brother:"brother = きょうだい",
+    niece:"niece = めい",
+    daughter:"daughter = むすめ",
+    mother:"mother = おかあさん",
+    grandson:"grandson = まごの おとこのこ",
+    grandmother:"grandmother = おばあさん",
+    grandfather:"grandfather = おじいさん",
+    friend:"friend = ともだち",
+    cousin:"cousin = いとこ"
+  };
+
+  const modeInfo = {
+    easy:{label:"ヒントあり",choices:4,delay:980,moving:false,aid:true,score:1,hint:"正しいカードが少し光ります"},
+    tempo:{label:"ヒントなし",choices:5,delay:650,moving:false,aid:false,score:1.25,hint:"ヒントなしですぐ次へ進みます"},
+    super:{label:"うごくカード",choices:7,delay:610,moving:true,aid:false,score:1.65,hint:"動くカードを見つけてタップ"}
+  };
+
+  const $ = id => document.getElementById(id);
+  const scene = $("scene");
+  const ctx = scene.getContext("2d");
+  const range = $("range");
+
+  const state = {
+    words: loadSavedWords() || DEFAULT_WORDS.slice(),
+    questions:[],
+    choices:[],
+    target:null,
+    index:0,
+    score:0,
+    streak:0,
+    cleared:0,
+    best:Number(localStorage.getItem("tapShootBest") || 0),
+    mode:"easy",
+    running:true,
+    locked:false,
+    sound:true,
+    hintUsed:0,
+    showHint:false,
+    weak: loadProgress().weak,
+    progress: loadProgress(),
+    movers:{},
+    particles:[],
+    messageTimer:0,
+    lastFrame:performance.now()
+  };
+
+  function loadProgress(){
+    const base={plays:0,best:{easy:0,tempo:0,super:0},weak:{}};
+    try{
+      const raw=localStorage.getItem("tapShootProgress");
+      if(!raw) return base;
+      return Object.assign(base, JSON.parse(raw));
+    }catch(e){return base;}
+  }
+  function saveProgress(){
+    state.progress.weak=state.weak;
+    try{localStorage.setItem("tapShootProgress", JSON.stringify(state.progress));}catch(e){}
+  }
+  function loadSavedWords(){
+    try{
+      const raw=localStorage.getItem("wbqWords");
+      if(!raw) return null;
+      const parsed=JSON.parse(raw);
+      if(Array.isArray(parsed) && parsed.length>=3) return normalizeWords(parsed);
+    }catch(e){}
+    return null;
+  }
+  function saveWords(words){
+    try{localStorage.setItem("wbqWords", JSON.stringify(words));}catch(e){}
+  }
+  function normalizeWords(words){
+    const byEn=new Map(DEFAULT_WORDS.map(w=>[w.en,w]));
+    return words.map(w=>{
+      const known=byEn.get(String(w.en).toLowerCase());
+      if(known) return {en:known.en,ja:known.ja,theme:known.theme};
+      return {en:String(w.en),ja:String(w.ja),theme:w.theme || "friend"};
+    });
+  }
+  function parseWords(text){
+    return text.split(/\n+/).map(line=>line.trim()).filter(Boolean).map(line=>{
+      const parts=line.split(/[,，\t]/).map(v=>v.trim()).filter(Boolean);
+      if(parts.length<2) return null;
+      const known=DEFAULT_WORDS.find(w=>w.en.toLowerCase()===parts[0].toLowerCase());
+      return {en:parts[0],ja:parts.slice(1).join(" "),theme:known ? known.theme : "friend"};
+    }).filter(Boolean);
+  }
+  function escapeHtml(text){
+    return String(text).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+  function shuffle(list){
+    const a=list.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function newRun(words){
+    state.words=(words && words.length>=3 ? words : state.words).slice(0,30);
+    saveWords(state.words);
+    state.questions=weightedQuestions();
+    state.index=0;
+    state.score=0;
+    state.streak=0;
+    state.cleared=0;
+    state.locked=false;
+    state.running=true;
+    $("finish").classList.remove("show");
+    nextRound();
+  }
+
+  function weightedQuestions(){
+    const weak=state.weak || {};
+    const base=state.words.slice();
+    base.sort((a,b)=>(weak[b.en]||0)-(weak[a.en]||0)+Math.random()-.5);
+    return base.slice(0,Math.min(15,base.length));
+  }
+
+  function nextRound(){
+    if(state.index>=state.questions.length){finish();return;}
+    state.locked=false;
+    state.hintUsed=0;
+    state.showHint=false;
+    state.movers={};
+    state.target=state.questions[state.index];
+    state.choices=buildChoices(state.target);
+    updatePrompt();
+    renderTargets();
+    updateStats();
+    speakJa(state.target.ja, .82);
+  }
+
+  function buildChoices(target){
+    const count=Math.min(modeInfo[state.mode].choices,state.words.length);
+    const byEn=new Map(state.words.map(w=>[w.en,w]));
+    const related=(RELATED[target.en] || [target.en]).map(en=>byEn.get(en)).filter(Boolean);
+    const fill=shuffle(state.words.filter(w=>w.en!==target.en && !related.includes(w)));
+    const picked=[];
+    related.forEach(w=>{ if(w && !picked.includes(w)) picked.push(w); });
+    if(!picked.includes(target)) picked.unshift(target);
+    fill.forEach(w=>{ if(picked.length<count && !picked.includes(w)) picked.push(w); });
+    return shuffle(picked.slice(0,count)).map((word,i)=>({
+      id:`${state.index}-${word.en}-${i}-${Math.random().toString(16).slice(2)}`,
+      word,
+      correct:word.en===target.en,
+      color:i%5,
+      bad:false,
+      shot:false
+    }));
+  }
+
+  function updatePrompt(){
+    $("modeChip").textContent=modeInfo[state.mode].label;
+    $("modeChip").classList.toggle("hot", state.mode==="super");
+    $("wordHint").textContent=THEME_LABELS[state.target.theme] || "family words";
+    $("meaning").textContent=state.target.ja;
+    $("tip").textContent=state.mode==="super"
+      ? "動くカードの中から、意味に合う英語をタップ。"
+      : "意味に合う英語をタップして、ことばをシュートしよう。";
+    $("modeHint").textContent=modeInfo[state.mode].hint;
+    $("helpText").textContent=state.mode==="super"
+      ? "うごくカードでは、問題が進むほどカードが速く動きます。目で追ってタップ。"
+      : "タップだけで遊べます。正解すると英語を読み上げて、すぐ次へ進みます。";
+  }
+
+  function updateStats(){
+    $("levelNow").textContent=Math.min(state.index+1,state.questions.length || 1);
+    $("levelMax").textContent=state.questions.length || state.words.length;
+    $("score").textContent=state.score;
+    $("streak").textContent=state.streak;
+    $("cleared").textContent=state.cleared;
+    $("best").textContent=state.best;
+    $("soundBtn").textContent=state.sound ? "音あり" : "音なし";
+    $("easyBtn").classList.toggle("selected",state.mode==="easy");
+    $("tempoBtn").classList.toggle("selected",state.mode==="tempo");
+    $("superBtn").classList.toggle("selected",state.mode==="super");
+  }
+
+  function renderTargets(){
+    const box=$("targets");
+    box.className=modeInfo[state.mode].moving ? "targets moving" : "targets";
+    box.innerHTML="";
+    state.choices.forEach(choice=>{
+      const btn=document.createElement("button");
+      btn.type="button";
+      btn.className=`target color${choice.color}`;
+      if(choice.correct && modeInfo[state.mode].aid) btn.classList.add("easyCorrect");
+      if(choice.correct && state.showHint) btn.classList.add("hintGlow");
+      if(choice.bad) btn.classList.add("badFlash");
+      if(choice.shot) btn.classList.add("shot");
+      btn.dataset.id=choice.id;
+      btn.innerHTML=`<span>${escapeHtml(choice.word.en)}</span>`;
+      box.appendChild(btn);
+    });
+    initMovers();
+  }
+
+  function initMovers(){
+    if(!modeInfo[state.mode].moving) return;
+    const rect=$("targets").getBoundingClientRect();
+    state.choices.forEach((choice,i)=>{
+      const el=targetEl(choice.id);
+      if(!el) return;
+      const w=el.offsetWidth || 120;
+      const h=el.offsetHeight || 64;
+      if(!state.movers[choice.id]){
+        state.movers[choice.id]={
+          x:16 + (i*137) % Math.max(90,rect.width-w-28),
+          y:16 + (i*83) % Math.max(80,rect.height-h-28),
+          vx:(Math.random()<.5?-1:1)*(34+state.index*6+Math.random()*32),
+          vy:(Math.random()<.5?-1:1)*(24+state.index*5+Math.random()*24)
+        };
+      }
+      const m=state.movers[choice.id];
+      m.x=Math.max(8,Math.min(rect.width-w-8,m.x));
+      m.y=Math.max(8,Math.min(rect.height-h-8,m.y));
+      el.style.transform=`translate(${m.x}px,${m.y}px)`;
+    });
+  }
+
+  function targetEl(id){
+    return Array.from(document.querySelectorAll(".target")).find(el=>el.dataset.id===id);
+  }
+
+  function tapTarget(id){
+    if(state.locked) return;
+    const choice=state.choices.find(c=>c.id===id);
+    if(!choice) return;
+    if(choice.correct) correct(choice);
+    else wrong(choice);
+  }
+
+  function correct(choice){
+    state.locked=true;
+    choice.shot=true;
+    state.streak++;
+    state.cleared++;
+    const base=120;
+    const streakBonus=Math.min(180,state.streak*18);
+    const hintPenalty=state.hintUsed*25;
+    const gain=Math.max(35,Math.round((base+streakBonus-hintPenalty)*modeInfo[state.mode].score));
+    state.score+=gain;
+    if(state.score>state.best){
+      state.best=state.score;
+      localStorage.setItem("tapShootBest",String(state.best));
+    }
+    state.progress.best[state.mode]=Math.max(state.progress.best[state.mode] || 0,state.score);
+    reduceWeak(state.target.en);
+    saveProgress();
+    renderTargets();
+    updateStats();
+    const el=targetEl(choice.id);
+    if(el){
+      const r=el.getBoundingClientRect();
+      burst(r.left+r.width/2,r.top+r.height/2,"good");
+    }
+    showMessage(`シュート！ +${gain}`,"good",660);
+    speakEn(choice.word.en, false);
+    setTimeout(()=>{
+      state.index++;
+      nextRound();
+    },modeInfo[state.mode].delay);
+  }
+
+  function wrong(choice){
+    choice.bad=true;
+    state.streak=0;
+    state.score=Math.max(0,state.score-20);
+    increaseWeak(state.target.en);
+    saveProgress();
+    updateStats();
+    const el=targetEl(choice.id);
+    if(el){
+      const r=el.getBoundingClientRect();
+      burst(r.left+r.width/2,r.top+r.height/2,"bad");
+      el.classList.add("badFlash");
+    }
+    showMessage("もう一回 見てみよう","bad",620);
+    $("tip").textContent=`${choice.word.en} ではなく、${state.target.ja} の英語をさがそう。`;
+    setTimeout(()=>{choice.bad=false;renderTargets();},420);
+  }
+
+  function burst(x,y,kind){
+    const b=document.createElement("div");
+    b.className="burst";
+    b.style.left=x+"px";
+    b.style.top=y+"px";
+    b.style.borderColor=kind==="bad" ? "#dc2626" : "#14b8a6";
+    document.body.appendChild(b);
+    setTimeout(()=>b.remove(),520);
+    const color=kind==="bad" ? "#dc2626" : "#14b8a6";
+    for(let i=0;i<18;i++){
+      const a=Math.random()*Math.PI*2;
+      const sp=2+Math.random()*5;
+      state.particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:28+Math.random()*18,color});
+    }
+  }
+
+  function showMessage(text,kind,duration){
+    const el=$("message");
+    el.textContent=text;
+    el.className=`message show ${kind || ""}`;
+    clearTimeout(state.messageTimer);
+    state.messageTimer=setTimeout(()=>el.classList.remove("show"),duration || 780);
+  }
+
+  function hint(){
+    if(state.locked) return;
+    state.hintUsed++;
+    state.showHint=true;
+    $("tip").textContent=`おたすけ: ${state.target.en} をさがそう。`;
+    speakEn(state.target.en, true);
+    renderTargets();
+  }
+
+  function setMode(mode){
+    state.mode=mode;
+    updatePrompt();
+    renderTargets();
+    updateStats();
+  }
+
+  function finish(){
+    state.locked=true;
+    state.running=false;
+    state.progress.plays=(state.progress.plays || 0)+1;
+    state.progress.best[state.mode]=Math.max(state.progress.best[state.mode] || 0,state.score);
+    saveProgress();
+    $("finalScore").textContent=state.score;
+    $("finalText").textContent=`${modeInfo[state.mode].label}で ${state.cleared}このことばを シュートしました。`;
+    $("finalTip").textContent=state.mode==="super"
+      ? "動く単語を見ながら、英語と意味をすばやくつなげられました。"
+      : "つぎはヒントなしやうごくカードでも遊べます。";
+    $("finish").classList.add("show");
+    showMessage("ぜんぶ クリア！","good",1100);
+  }
+
+  function increaseWeak(en){state.weak[en]=(state.weak[en]||0)+1;}
+  function reduceWeak(en){if(state.weak[en]) state.weak[en]=Math.max(0,state.weak[en]-0.45);}
+
+  function speakEn(text, soft){
+    if(!state.sound || !("speechSynthesis" in window)) return;
+    try{
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang="en-US";
+      u.rate=soft ? .82 : .92;
+      u.pitch=1.04;
+      u.volume=soft ? .62 : .95;
+      const voices=speechSynthesis.getVoices();
+      const picked=voices.find(v=>/en[-_]US/i.test(v.lang)) || voices.find(v=>/^en/i.test(v.lang));
+      if(picked) u.voice=picked;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function speakJa(text, soft){
+    if(!state.sound || !("speechSynthesis" in window)) return;
+    try{
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang="ja-JP";
+      u.rate=soft ? .95 : 1;
+      u.pitch=1.04;
+      u.volume=.42;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  function refreshWordUI(){
+    $("wordGrid").innerHTML="";
+    state.words.forEach(w=>{
+      const div=document.createElement("div");
+      div.className="pill";
+      div.innerHTML=`<span>${escapeHtml(w.ja)}</span><span>${escapeHtml(w.en)}</span>`;
+      $("wordGrid").appendChild(div);
+    });
+    $("wordInput").value=state.words.map(w=>`${w.en},${w.ja}`).join("\n");
+  }
+  function refreshProgressUI(){
+    $("progressGrid").innerHTML="";
+    const sorted=state.words.slice().sort((a,b)=>(state.weak[b.en]||0)-(state.weak[a.en]||0));
+    sorted.forEach(w=>{
+      const weak=state.weak[w.en] || 0;
+      const div=document.createElement("div");
+      div.className="statPill";
+      div.innerHTML=`<b>${escapeHtml(w.ja)} → ${escapeHtml(w.en)}</b><span>もう一回 ${"★".repeat(Math.min(5,weak))}${"☆".repeat(Math.max(0,5-weak))}</span>`;
+      $("progressGrid").appendChild(div);
+    });
+    const rows=[
+      ["あそんだ",state.progress.plays || 0],
+      ["ヒントあり",state.progress.best.easy || 0],
+      ["ヒントなし",state.progress.best.tempo || 0],
+      ["うごくカード",state.progress.best.super || 0]
+    ];
+    $("summaryGrid").innerHTML=rows.map(([k,v])=>`<div class="statPill"><b>${escapeHtml(k)}</b><span>${escapeHtml(v)}</span></div>`).join("");
+  }
+
+  $("targets").addEventListener("click",event=>{
+    const target=event.target.closest(".target");
+    if(target) tapTarget(target.dataset.id);
+  });
+  $("easyBtn").onclick=()=>setMode("easy");
+  $("tempoBtn").onclick=()=>setMode("tempo");
+  $("superBtn").onclick=()=>setMode("super");
+  $("hintBtn").onclick=hint;
+  $("shuffleBtn").onclick=()=>{if(!state.locked){state.choices=shuffle(state.choices);state.movers={};renderTargets();}};
+  $("restartBtn").onclick=()=>newRun(state.words);
+  $("againBtn").onclick=()=>newRun(state.words);
+  $("listenBtn").onclick=()=>hint();
+  $("soundBtn").onclick=()=>{state.sound=!state.sound;if(!state.sound && "speechSynthesis" in window) speechSynthesis.cancel();updateStats();};
+
+  $("wordsBtn").onclick=()=>{refreshWordUI();$("wordsModal").classList.add("show");};
+  $("closeWordsBtn").onclick=()=>$("wordsModal").classList.remove("show");
+  $("applyWordsBtn").onclick=()=>{
+    const words=parseWords($("wordInput").value);
+    if(words.length<3){alert("3こ以上 入れてください。");return;}
+    state.words=words.slice(0,30);
+    $("wordsModal").classList.remove("show");
+    newRun(state.words);
+  };
+  $("resetWordsBtn").onclick=()=>{state.words=DEFAULT_WORDS.slice();saveWords(state.words);refreshWordUI();newRun(state.words);};
+
+  $("progressBtn").onclick=()=>{refreshProgressUI();$("progressModal").classList.add("show");};
+  $("closeProgressBtn").onclick=()=>$("progressModal").classList.remove("show");
+  $("reviewWeakBtn").onclick=()=>{
+    const weak=state.words.slice().sort((a,b)=>(state.weak[b.en]||0)-(state.weak[a.en]||0)).filter(w=>(state.weak[w.en]||0)>0);
+    $("progressModal").classList.remove("show");
+    newRun(weak.length>=3 ? weak : state.words);
+  };
+  $("resetProgressBtn").onclick=()=>{
+    if(confirm("きろくをけしますか？")){
+      state.progress={plays:0,best:{easy:0,tempo:0,super:0},weak:{}};
+      state.weak=state.progress.weak;
+      localStorage.setItem("tapShootBest","0");
+      state.best=0;
+      saveProgress();
+      refreshProgressUI();
+      updateStats();
+    }
+  };
+
+  document.addEventListener("keydown",event=>{
+    if(event.key===" "){event.preventDefault();hint();}
+    if(event.key==="Enter" && !state.locked){
+      const correct=state.choices.find(c=>c.correct);
+      if(correct) tapTarget(correct.id);
+    }
+  },{passive:false});
+
+  function resizeScene(){
+    const dpr=Math.max(1,Math.min(2,window.devicePixelRatio || 1));
+    scene.width=Math.floor(innerWidth*dpr);
+    scene.height=Math.floor(innerHeight*dpr);
+    scene.style.width=innerWidth+"px";
+    scene.style.height=innerHeight+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    initMovers();
+  }
+
+  function drawBackground(time){
+    const w=innerWidth,h=innerHeight,t=time*.001;
+    const sky=ctx.createLinearGradient(0,0,0,h);
+    sky.addColorStop(0,"#fed7aa");
+    sky.addColorStop(.56,"#fbcfe8");
+    sky.addColorStop(1,"#ccfbf1");
+    ctx.fillStyle=sky;
+    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle="#fef3c7";
+    ctx.beginPath();
+    ctx.arc(w*.82,h*.14,Math.max(38,w*.045),0,Math.PI*2);
+    ctx.fill();
+    drawCloud((t*20)%(w+220)-130,h*.16,1);
+    drawCloud((t*13+280)%(w+260)-150,h*.28,.74);
+    drawHill("#a7f3d0",h*.62,.9,0);
+    drawHill("#fda4af",h*.72,1.12,110);
+    drawHill("#fde68a",h*.83,1.25,210);
+    drawWordBoard(w,h,t);
+    drawTargetStand(w,h,t);
+    drawParticles();
+  }
+  function drawCloud(x,y,s){
+    ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+    ctx.fillStyle="rgba(255,255,255,.78)";
+    [[0,15,32],[34,4,40],[78,14,30],[110,20,24]].forEach(c=>{
+      ctx.beginPath();ctx.arc(c[0],c[1],c[2],0,Math.PI*2);ctx.fill();
+    });
+    ctx.fillRect(-8,18,128,26);
+    ctx.restore();
+  }
+  function drawHill(color,base,scale,phase){
+    const w=innerWidth,h=innerHeight;
+    ctx.fillStyle=color;
+    ctx.beginPath();
+    ctx.moveTo(0,h);
+    for(let x=0;x<=w+30;x+=30){
+      ctx.lineTo(x,base+Math.sin((x+phase)*.008)*24*scale+Math.sin((x+phase)*.021)*10*scale);
+    }
+    ctx.lineTo(w,h);ctx.closePath();ctx.fill();
+  }
+  function drawWordBoard(w,h,t){
+    const x=Math.max(18,w*.055), y=h*.49, bw=Math.min(230,w*.25), bh=122;
+    ctx.save();ctx.translate(x,y);
+    ctx.fillStyle="rgba(255,247,243,.9)";
+    roundRect(0,0,bw,bh,8);ctx.fill();
+    ctx.strokeStyle="rgba(190,18,60,.22)";ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle="#be123c";ctx.font="900 15px system-ui,-apple-system,sans-serif";
+    ctx.fillText("family words",14,24);
+    [[42,72,"#fb7185",1],[88,66,"#14b8a6",.9],[132,72,"#8b5cf6",1],[176,68,"#f59e0b",.84]].forEach(p=>drawPerson(p[0],p[1]+Math.sin(t*2+p[0])*.8,p[2],p[3]));
+    ctx.restore();
+  }
+  function drawPerson(x,y,color,s){
+    ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+    ctx.fillStyle="#fde68a";ctx.beginPath();ctx.arc(0,-24,13,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=color;roundRect(-17,-9,34,42,8);ctx.fill();
+    ctx.strokeStyle="rgba(15,23,42,.28)";ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(-10,34);ctx.lineTo(-15,54);ctx.moveTo(10,34);ctx.lineTo(15,54);ctx.stroke();
+    ctx.restore();
+  }
+  function drawTargetStand(w,h,t){
+    const base=h*.82;
+    ctx.fillStyle="#be123c";ctx.fillRect(0,base,w,h-base);
+    ctx.fillStyle="#fff7ed";ctx.fillRect(0,base-20,w,22);
+    ctx.fillStyle="#57534e";
+    for(let x=-30;x<w+70;x+=62){
+      ctx.fillRect(x,base+22,32,7);
+      ctx.fillRect(x+8,base+48,20,7);
+    }
+    const sx=w*.67,sy=base-118;
+    ctx.fillStyle="#0f766e";roundRect(sx,sy,198,88,8);ctx.fill();
+    ctx.fillStyle="#fff7ed";ctx.fillRect(sx+12,sy+16,174,28);
+    ctx.fillStyle="#172033";ctx.font="1000 19px system-ui,-apple-system,sans-serif";
+    ctx.fillText("TAP TARGET",sx+35,sy+37);
+  }
+  function drawParticles(){
+    for(const p of state.particles){
+      ctx.save();
+      ctx.globalAlpha=Math.max(0,p.life/42);
+      ctx.fillStyle=p.color;
+      ctx.beginPath();ctx.arc(p.x,p.y,3.4,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+      p.x+=p.vx;p.y+=p.vy;p.vy+=.08;p.life--;
+    }
+    state.particles=state.particles.filter(p=>p.life>0);
+  }
+  function roundRect(x,y,w,h,r){
+    const rr=Math.min(r,w/2,h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);
+    ctx.arcTo(x+w,y,x+w,y+h,rr);
+    ctx.arcTo(x+w,y+h,x,y+h,rr);
+    ctx.arcTo(x,y+h,x,y,rr);
+    ctx.arcTo(x,y,x+w,y,rr);
+    ctx.closePath();
+  }
+
+  function updateMoving(dt){
+    if(!modeInfo[state.mode].moving || state.locked) return;
+    const holder=$("targets");
+    const rect=holder.getBoundingClientRect();
+    if(rect.width<80 || rect.height<80) return;
+    state.choices.forEach(choice=>{
+      const m=state.movers[choice.id];
+      const el=targetEl(choice.id);
+      if(!m || !el) return;
+      const w=el.offsetWidth || 120;
+      const h=el.offsetHeight || 64;
+      const boost=1+state.index*.045;
+      m.x+=m.vx*dt*boost;
+      m.y+=m.vy*dt*boost;
+      if(m.x<8){m.x=8;m.vx=Math.abs(m.vx);}
+      if(m.y<8){m.y=8;m.vy=Math.abs(m.vy);}
+      if(m.x>rect.width-w-8){m.x=rect.width-w-8;m.vx=-Math.abs(m.vx);}
+      if(m.y>rect.height-h-8){m.y=rect.height-h-8;m.vy=-Math.abs(m.vy);}
+      el.style.transform=`translate(${m.x}px,${m.y}px)`;
+    });
+  }
+
+  function loop(now){
+    const dt=Math.min(.05,(now-state.lastFrame)/1000);
+    state.lastFrame=now;
+    drawBackground(now);
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener("resize",resizeScene);
+  if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=()=>{};
+  resizeScene();
+  newRun(state.words);
+  setInterval(()=>updateMoving(1/30),33);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
