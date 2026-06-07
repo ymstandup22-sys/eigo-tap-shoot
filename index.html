@@ -692,6 +692,8 @@
     {title:"すばらしい一問", body:"手をゆるめて、首と肩を休ませよう。"},
     {title:"落ち着いていこう", body:"鼻から吸って、口からゆっくり吐こう。"}
   ];
+  const REST_EVERY = 3;
+  const QUESTION_ROUND_KEY = "tapShootQuestionRoundV1";
 
   const $ = id => document.getElementById(id);
   const scene = $("scene");
@@ -777,7 +779,7 @@
   function newRun(words){
     state.words=(words && words.length>=3 ? words : state.words).slice(0,30);
     saveWords(state.words);
-    state.questions=weightedQuestions();
+    state.questions=rotatingQuestions();
     state.index=0;
     state.score=0;
     state.streak=0;
@@ -788,11 +790,22 @@
     nextRound();
   }
 
-  function weightedQuestions(){
-    const weak=state.weak || {};
-    const base=state.words.slice();
-    base.sort((a,b)=>(weak[b.en]||0)-(weak[a.en]||0)+Math.random()-.5);
-    return base.slice(0,Math.min(15,base.length));
+  function nextQuestionRound(){
+    try{
+      const current=Math.max(0,Number(localStorage.getItem(QUESTION_ROUND_KEY)) || 0);
+      localStorage.setItem(QUESTION_ROUND_KEY,String(current+1));
+      return current;
+    }catch(e){
+      nextQuestionRound.memory=(nextQuestionRound.memory || 0)+1;
+      return nextQuestionRound.memory-1;
+    }
+  }
+
+  function rotatingQuestions(){
+    const base=state.words.slice(0,Math.min(15,state.words.length));
+    if(!base.length) return base;
+    const shift=nextQuestionRound() % base.length;
+    return base.slice(shift).concat(base.slice(0,shift));
   }
 
   function nextRound(){
@@ -936,10 +949,15 @@
     showMessage(`シュート！ +${gain}`,"good",660);
     speakEn(choice.word.en, false);
     setTimeout(()=>{
-      showRewardBreak(choice.word, ()=>{
-        state.index++;
+      state.index++;
+      const shouldRest = state.index % REST_EVERY === 0 || state.index >= state.questions.length;
+      if(shouldRest){
+        showRewardBreak(choice.word, ()=>{
+          nextRound();
+        });
+      }else{
         nextRound();
-      });
+      }
     },modeInfo[state.mode].delay);
   }
 
