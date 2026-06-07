@@ -379,10 +379,11 @@
       font-size:clamp(58px,15vw,104px);
       letter-spacing:0;
     }
-    .restPicture.imageCard{
-      background-image:linear-gradient(180deg,rgba(255,255,255,.05),rgba(23,32,51,.16)),url("assets/evening-school-family-bg.jpg");
-      background-size:cover;
-      background-position:center;
+    .restPicture.artPanel{
+      background-image:url("assets/sentence-reward-sheet.png");
+      background-size:500% 300%;
+      background-position:var(--art-x,0%) var(--art-y,0%);
+      background-repeat:no-repeat;
       box-shadow:0 16px 42px rgba(15,23,42,.2);
       font-size:0;
     }
@@ -650,6 +651,23 @@
     ["brother","きょうだい","brother"],
     ["aunt","おばさん","aunt"]
   ].map(([en,ja,theme])=>({en,ja,theme}));
+
+  const WORD_ART_INDEX = {
+    grandmother:0,
+    uncle:1,
+    sister:2,
+    husband:3,
+    wife:4,
+    brother:5,
+    niece:6,
+    friend:7,
+    cousin:8,
+    grandson:9,
+    aunt:11,
+    daughter:12,
+    grandfather:13,
+    mother:14
+  };
 
   const RELATED = {
     wife:["wife","husband","mother","daughter","aunt"],
@@ -1013,13 +1031,14 @@
   function showRewardBreak(word,onDone){
     const overlay=$("restBreak");
     const rest=nextRestPrompt();
+    const artStyle=rewardArtStyle(word);
     const cardMs=2300;
     const darkRestMs=7000;
     overlay.className="restBreak show";
     overlay.innerHTML=`
       <div class="restCard">
         <div class="restLabel">ごほうび えカード</div>
-        <div class="restPicture imageCard" aria-hidden="true"></div>
+        <div class="restPicture artPanel" style="${artStyle}" aria-hidden="true"></div>
         <p class="restWord">${escapeHtml(word.en)}</p>
         <p class="restMeaning">${escapeHtml(word.ja)}</p>
       </div>`;
@@ -1037,6 +1056,14 @@
       overlay.innerHTML="";
       onDone();
     },cardMs+darkRestMs);
+  }
+
+  function rewardArtStyle(word){
+    const key=(word && word.en) || "friend";
+    const index=WORD_ART_INDEX[key] ?? WORD_ART_INDEX.friend;
+    const col=index % 5;
+    const row=Math.floor(index / 5);
+    return `--art-x:${col * 25}%;--art-y:${row * 50}%;`;
   }
 
   function nextRestPrompt(){
