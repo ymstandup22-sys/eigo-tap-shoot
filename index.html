@@ -718,6 +718,7 @@
     {title:"落ち着いていこう", body:"鼻から吸って、口からゆっくり吐こう。"}
   ];
   const REST_EVERY = 3;
+  const WORDS_STORAGE_KEY = "tapShootWords";
   const QUESTION_ROUND_KEY = "tapShootQuestionRoundV1";
 
   const $ = id => document.getElementById(id);
@@ -763,7 +764,7 @@
   }
   function loadSavedWords(){
     try{
-      const raw=localStorage.getItem("wbqWords");
+      const raw=localStorage.getItem(WORDS_STORAGE_KEY);
       if(!raw) return null;
       const parsed=JSON.parse(raw);
       if(Array.isArray(parsed) && parsed.length>=3) return normalizeWords(parsed);
@@ -771,7 +772,7 @@
     return null;
   }
   function saveWords(words){
-    try{localStorage.setItem("wbqWords", JSON.stringify(words));}catch(e){}
+    try{localStorage.setItem(WORDS_STORAGE_KEY, JSON.stringify(words));}catch(e){}
   }
   function normalizeWords(words){
     const byEn=new Map(DEFAULT_WORDS.map(w=>[w.en,w]));
